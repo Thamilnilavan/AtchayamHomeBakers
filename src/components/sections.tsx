@@ -278,8 +278,8 @@ function ArcCard({
       <motion.div style={{ transformStyle: "preserve-3d", ...(rm ? undefined : { x, y, rotateY: ry }) }}>
         <div style={{ transform: `rotateY(${pos.fan}deg)` }}>
           <div className={rm ? "" : "animate-bob"} style={{ animationDelay: `${(i % 5) * 0.8}s` }}>
-            <div className="relative h-20 w-16 overflow-hidden rounded-2xl border border-gold/25 bg-cocoa shadow-[0_28px_60px_-28px_rgba(201,162,94,0.45)] sm:h-36 sm:w-28">
-              <Image src={photo.src} alt="" fill sizes="160px" className="object-cover" />
+            <div className="relative h-24 w-20 overflow-hidden rounded-2xl border border-gold/25 bg-cocoa shadow-[0_28px_60px_-28px_rgba(201,162,94,0.45)] sm:h-52 sm:w-44">
+              <Image src={photo.src} alt="" fill sizes="280px" className="object-cover" />
               <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-ivory/10" />
             </div>
           </div>
@@ -312,9 +312,9 @@ function PhotoArc({
         {photos.slice(2, 5).map((photo) => (
           <div
             key={photo.src}
-            className="relative h-[4.25rem] w-14 overflow-hidden rounded-xl border border-gold/20 bg-cocoa opacity-50 shadow-[0_18px_40px_-22px_rgba(201,162,94,0.5)]"
+            className="relative h-24 w-20 overflow-hidden rounded-xl border border-gold/20 bg-cocoa opacity-55 shadow-[0_18px_40px_-22px_rgba(201,162,94,0.5)]"
           >
-            <Image src={photo.src} alt="" fill sizes="96px" className="object-cover" />
+            <Image src={photo.src} alt="" fill sizes="160px" className="object-cover" />
           </div>
         ))}
       </div>
