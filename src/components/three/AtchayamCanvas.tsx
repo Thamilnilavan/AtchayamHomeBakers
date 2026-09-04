@@ -72,7 +72,7 @@ export default function AtchayamCanvas() {
     );
     io.observe(wrapper);
 
-    const clock = new THREE.Clock();
+    const timer = new THREE.Timer();
 
     const driftDust = (dt: number) => {
       const arr = dust.positions;
@@ -91,8 +91,9 @@ export default function AtchayamCanvas() {
 
     const loop = () => {
       if (running && inView) {
-        const dt = Math.min(clock.getDelta(), 0.05);
-        const t = clock.elapsedTime;
+        timer.update();
+        const dt = Math.min(timer.getDelta(), 0.05);
+        const t = timer.getElapsed();
         if (!reduced) driftDust(dt);
 
         /* gentle camera sway gives the dust real depth */

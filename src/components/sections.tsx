@@ -227,59 +227,51 @@ export function SiteNav() {
   );
 }
 
-/* ── hero photo arc — the seven bakes, aligned and floating ── */
+/* ── hero photo shelf — the seven bakes in one aligned row ── */
 
-type ArcPos = {
-  x: number; // % offset from centre (negative = left)
-  y: number; // % offset from centre (negative = up)
+type ShelfPos = {
   depth: number; // mouse-parallax strength
   fan: number; // static 3D tilt in degrees
-  mobile: boolean; // also shown on small screens
 };
 
-const ARC: ArcPos[] = [
-  { x: -52, y: -46, depth: 1, fan: -8, mobile: false },
-  { x: 52, y: -46, depth: 1, fan: 8, mobile: false },
-  { x: 0, y: -34, depth: 0.5, fan: 0, mobile: true },
-  { x: -57, y: 2, depth: 0.9, fan: -14, mobile: true },
-  { x: 57, y: 2, depth: 0.9, fan: 14, mobile: true },
-  { x: -31, y: 44, depth: 0.65, fan: -10, mobile: false },
-  { x: 31, y: 44, depth: 0.65, fan: 10, mobile: false },
+const SHELF: ShelfPos[] = [
+  { depth: 1, fan: 9 },
+  { depth: 0.85, fan: -7 },
+  { depth: 0.7, fan: 5 },
+  { depth: 0.55, fan: 0 },
+  { depth: 0.7, fan: -5 },
+  { depth: 0.85, fan: 7 },
+  { depth: 1, fan: -9 },
 ];
 
-function ArcCard({
-  pos,
+function ShelfCard({
   photo,
+  pos,
   i,
   px,
   py,
   rm,
 }: {
-  pos: ArcPos;
   photo: (typeof galleryPhotos)[number];
+  pos: ShelfPos;
   i: number;
   px: MotionValue<number>;
   py: MotionValue<number>;
   rm: boolean | null;
 }) {
-  const x = useTransform(px, (v) => v * pos.depth * 34);
-  const y = useTransform(py, (v) => v * pos.depth * 26);
-  const ry = useTransform(px, (v) => v * pos.depth * 7);
+  const x = useTransform(px, (v) => v * pos.depth * 26);
+  const y = useTransform(py, (v) => v * pos.depth * 18);
+  const ry = useTransform(px, (v) => v * pos.depth * 5);
   return (
     <div
-      className={`pointer-events-none absolute ${pos.mobile ? "" : "hidden md:block"}`}
-      style={{
-        left: `${50 + pos.x}%`,
-        top: `${50 + pos.y}%`,
-        opacity: 0.6,
-        perspective: 900,
-      }}
+      className={`pointer-events-none shrink-0 ${i === 0 ? "" : "-ml-6 md:-ml-10 lg:-ml-12"}`}
+      style={{ perspective: 900 }}
     >
       <motion.div style={{ transformStyle: "preserve-3d", ...(rm ? undefined : { x, y, rotateY: ry }) }}>
         <div style={{ transform: `rotateY(${pos.fan}deg)` }}>
           <div className={rm ? "" : "animate-bob"} style={{ animationDelay: `${(i % 5) * 0.8}s` }}>
-            <div className="relative h-24 w-20 overflow-hidden rounded-2xl border border-gold/25 bg-cocoa shadow-[0_28px_60px_-28px_rgba(201,162,94,0.45)] sm:h-52 sm:w-44">
-              <Image src={photo.src} alt="" fill sizes="280px" className="object-cover" />
+            <div className="relative h-24 w-20 overflow-hidden rounded-2xl border border-gold/25 bg-cocoa opacity-90 shadow-[0_28px_60px_-28px_rgba(201,162,94,0.45)] md:h-44 md:w-36 lg:h-52 lg:w-44">
+              <Image src={photo.src} alt="" fill sizes="320px" loading="eager" className="object-cover" />
               <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-ivory/10" />
             </div>
           </div>
@@ -289,7 +281,7 @@ function ArcCard({
   );
 }
 
-function PhotoArc({
+function PhotoShelf({
   px,
   py,
   rm,
@@ -300,25 +292,25 @@ function PhotoArc({
 }) {
   const photos = galleryPhotos.slice(0, 7);
   return (
-    <>
-      {/* desktop — one symmetric arc of seven, each in its own depth plane */}
-      <div aria-hidden className="absolute inset-0 hidden md:block">
-        {ARC.map((pos, i) => (
-          <ArcCard key={`${pos.x}:${pos.y}`} pos={pos} photo={photos[i]} i={i} px={px} py={py} rm={rm} />
+    <div aria-hidden className="pointer-events-none mt-10 flex w-full justify-center">
+      {/* desktop — all seven, overlapping into a fanned shelf */}
+      <div className="hidden items-center md:flex" style={{ perspective: 1100 }}>
+        {SHELF.map((pos, i) => (
+          <ShelfCard key={i} photo={photos[i]} pos={pos} i={i} px={px} py={py} rm={rm} />
         ))}
       </div>
-      {/* mobile — a tidy row of three above the headline */}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-[16%] hidden justify-center gap-3 md:hidden">
+      {/* mobile — three, evenly spaced */}
+      <div className="flex items-center gap-3 md:hidden">
         {photos.slice(2, 5).map((photo) => (
           <div
             key={photo.src}
-            className="relative h-24 w-20 overflow-hidden rounded-xl border border-gold/20 bg-cocoa opacity-55 shadow-[0_18px_40px_-22px_rgba(201,162,94,0.5)]"
+            className="relative h-24 w-20 overflow-hidden rounded-xl border border-gold/20 bg-cocoa opacity-90 shadow-[0_18px_40px_-22px_rgba(201,162,94,0.5)]"
           >
-            <Image src={photo.src} alt="" fill sizes="160px" className="object-cover" />
+            <Image src={photo.src} alt="" fill sizes="160px" loading="eager" className="object-cover" />
           </div>
         ))}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -387,19 +379,8 @@ export function HeroSection() {
             "linear-gradient(180deg, rgba(18,16,12,0.6) 0%, rgba(18,16,12,0) 22%, rgba(18,16,12,0) 58%, rgba(18,16,12,0.5) 84%, #12100c 100%)",
         }}
       />
-      {/* 2 · the seven bakes — aligned floating photos, parallax with the cursor */}
-      <PhotoArc px={photoX} py={photoY} rm={rm} />
-      {/* 3 · living gold dust over the photos */}
+      {/* 2 · living gold dust across the hero */}
       <AtchayamCanvas />
-      {/* 4 · a soft scrim keeps the words readable above the photos */}
-      <div
-        aria-hidden
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(44% 40% at 50% 46%, rgba(18,16,12,0.72) 0%, rgba(18,16,12,0.34) 58%, rgba(18,16,12,0) 82%)",
-        }}
-      />
 
       <motion.div
         style={rm || !heroMotion ? undefined : { y: contentY, opacity: contentOpacity }}
@@ -448,11 +429,14 @@ export function HeroSection() {
           <GhostButton href="#bakes">Explore the bakes ↓</GhostButton>
         </motion.div>
 
+        {/* the seven bakes — one aligned shelf, parallax with the cursor */}
+        <PhotoShelf px={photoX} py={photoY} rm={rm} />
+
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1.1, duration: 1 }}
-          className="mt-14 flex flex-col items-center gap-2"
+          transition={{ delay: 1.15, duration: 1 }}
+          className="mt-8 flex flex-col items-center gap-2"
         >
           <p className="text-[9px] font-semibold uppercase tracking-[0.4em] text-sand/80">
             Fresh daily · 7 AM – 9:30 PM · Kilinochchi
