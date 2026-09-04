@@ -3,14 +3,24 @@
 import Image from "next/image";
 import {
   motion,
+  useMotionValue,
   useReducedMotion,
   useScroll,
+  useSpring,
   useTransform,
+  type MotionValue,
 } from "framer-motion";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as RPointerEvent,
+  type ReactNode,
+} from "react";
 import {
   brand,
   categories,
+  galleryPhotos,
   ordering,
   signatures,
   story,
@@ -136,7 +146,7 @@ export function SiteNav() {
     <header
       className={`fixed inset-x-0 top-0 z-40 transition-all duration-500 ${
         scrolled
-          ? "border-b border-ivory/[0.07] bg-espresso/85 backdrop-blur-xl"
+          ? "border-b border-ivory/[0.07] bg-espresso md:bg-espresso/85 md:backdrop-blur-xl"
           : "border-b border-transparent bg-transparent"
       }`}
     >
@@ -217,9 +227,115 @@ export function SiteNav() {
   );
 }
 
+/* ── hero photo arc — the seven bakes, aligned and floating ── */
+
+type ArcPos = {
+  x: number; // % offset from centre (negative = left)
+  y: number; // % offset from centre (negative = up)
+  depth: number; // mouse-parallax strength
+  fan: number; // static 3D tilt in degrees
+  mobile: boolean; // also shown on small screens
+};
+
+const ARC: ArcPos[] = [
+  { x: -52, y: -46, depth: 1, fan: -8, mobile: false },
+  { x: 52, y: -46, depth: 1, fan: 8, mobile: false },
+  { x: 0, y: -34, depth: 0.5, fan: 0, mobile: true },
+  { x: -57, y: 2, depth: 0.9, fan: -14, mobile: true },
+  { x: 57, y: 2, depth: 0.9, fan: 14, mobile: true },
+  { x: -31, y: 44, depth: 0.65, fan: -10, mobile: false },
+  { x: 31, y: 44, depth: 0.65, fan: 10, mobile: false },
+];
+
+function ArcCard({
+  pos,
+  photo,
+  i,
+  px,
+  py,
+  rm,
+}: {
+  pos: ArcPos;
+  photo: (typeof galleryPhotos)[number];
+  i: number;
+  px: MotionValue<number>;
+  py: MotionValue<number>;
+  rm: boolean | null;
+}) {
+  const x = useTransform(px, (v) => v * pos.depth * 34);
+  const y = useTransform(py, (v) => v * pos.depth * 26);
+  const ry = useTransform(px, (v) => v * pos.depth * 7);
+  return (
+    <div
+      className={`pointer-events-none absolute ${pos.mobile ? "" : "hidden md:block"}`}
+      style={{
+        left: `${50 + pos.x}%`,
+        top: `${50 + pos.y}%`,
+        opacity: 0.6,
+        perspective: 900,
+      }}
+    >
+      <motion.div style={{ transformStyle: "preserve-3d", ...(rm ? undefined : { x, y, rotateY: ry }) }}>
+        <div style={{ transform: `rotateY(${pos.fan}deg)` }}>
+          <div className={rm ? "" : "animate-bob"} style={{ animationDelay: `${(i % 5) * 0.8}s` }}>
+            <div className="relative h-20 w-16 overflow-hidden rounded-2xl border border-gold/25 bg-cocoa shadow-[0_28px_60px_-28px_rgba(201,162,94,0.45)] sm:h-36 sm:w-28">
+              <Image src={photo.src} alt="" fill sizes="160px" className="object-cover" />
+              <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-ivory/10" />
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function PhotoArc({
+  px,
+  py,
+  rm,
+}: {
+  px: MotionValue<number>;
+  py: MotionValue<number>;
+  rm: boolean | null;
+}) {
+  const photos = galleryPhotos.slice(0, 7);
+  return (
+    <>
+      {/* desktop — one symmetric arc of seven, each in its own depth plane */}
+      <div aria-hidden className="absolute inset-0 hidden md:block">
+        {ARC.map((pos, i) => (
+          <ArcCard key={`${pos.x}:${pos.y}`} pos={pos} photo={photos[i]} i={i} px={px} py={py} rm={rm} />
+        ))}
+      </div>
+      {/* mobile — a tidy row of three above the headline */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-[16%] hidden justify-center gap-3 md:hidden">
+        {photos.slice(2, 5).map((photo) => (
+          <div
+            key={photo.src}
+            className="relative h-[4.25rem] w-14 overflow-hidden rounded-xl border border-gold/20 bg-cocoa opacity-50 shadow-[0_18px_40px_-22px_rgba(201,162,94,0.5)]"
+          >
+            <Image src={photo.src} alt="" fill sizes="96px" className="object-cover" />
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
 /* ── 2 · Hero — the brand, alone over a quiet field of gold dust ── */
 export function HeroSection() {
   const rm = useReducedMotion();
+
+  /* scroll-linked hero motion only on desktop — on touch devices it
+     fights momentum scrolling and makes the page visibly shake */
+  const [heroMotion, setHeroMotion] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px) and (pointer: fine)");
+    const update = () => setHeroMotion(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   /* as the visitor scrolls away, the words drift up and fade out */
   const secRef = useRef<HTMLElement>(null);
@@ -230,10 +346,28 @@ export function HeroSection() {
   const contentY = useTransform(scrollYProgress, [0, 0.9], [0, -90]);
   const contentOpacity = useTransform(scrollYProgress, [0, 0.45, 0.9], [1, 1, 0]);
 
+  /* mouse parallax — the floating photos drift against the cursor */
+  const parX = useMotionValue(0);
+  const parY = useMotionValue(0);
+  const photoX = useSpring(parX, { stiffness: 55, damping: 20 });
+  const photoY = useSpring(parY, { stiffness: 55, damping: 20 });
+  const onMove = (e: RPointerEvent<HTMLElement>) => {
+    if (rm) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    parX.set((e.clientX - r.left) / r.width - 0.5);
+    parY.set((e.clientY - r.top) / r.height - 0.5);
+  };
+  const onLeave = () => {
+    parX.set(0);
+    parY.set(0);
+  };
+
   return (
     <section
       ref={secRef}
       id="top"
+      onPointerMove={onMove}
+      onPointerLeave={onLeave}
       className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden"
     >
       {/* 1 · a soft golden bloom behind the words, dark vignette at the edges */}
@@ -253,11 +387,22 @@ export function HeroSection() {
             "linear-gradient(180deg, rgba(18,16,12,0.6) 0%, rgba(18,16,12,0) 22%, rgba(18,16,12,0) 58%, rgba(18,16,12,0.5) 84%, #12100c 100%)",
         }}
       />
-      {/* 2 · living gold dust — the only motion in this hero */}
+      {/* 2 · the seven bakes — aligned floating photos, parallax with the cursor */}
+      <PhotoArc px={photoX} py={photoY} rm={rm} />
+      {/* 3 · living gold dust over the photos */}
       <AtchayamCanvas />
+      {/* 4 · a soft scrim keeps the words readable above the photos */}
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(44% 40% at 50% 46%, rgba(18,16,12,0.72) 0%, rgba(18,16,12,0.34) 58%, rgba(18,16,12,0) 82%)",
+        }}
+      />
 
       <motion.div
-        style={rm ? undefined : { y: contentY, opacity: contentOpacity }}
+        style={rm || !heroMotion ? undefined : { y: contentY, opacity: contentOpacity }}
         className="relative z-10 flex w-full max-w-5xl flex-col items-center px-6 pb-16 pt-28 sm:pt-32"
       >
         <motion.p
@@ -330,7 +475,7 @@ export function HeroSection() {
 /* ── 3 · Our Story ── */
 export function StorySection() {
   return (
-    <section id="story" className="vignette relative scroll-mt-20 px-6 py-28 md:py-40">
+    <section id="story" className="vignette relative scroll-mt-20 overflow-hidden px-6 py-28 md:py-40">
       <p
         aria-hidden
         className="font-tamil pointer-events-none absolute -right-6 top-16 select-none text-[34vw] leading-none text-ivory/[0.025] lg:text-[300px]"

@@ -40,7 +40,8 @@ export default function AtchayamCanvas() {
     const setSize = () => {
       const w = wrapper.clientWidth || window.innerWidth;
       const h = wrapper.clientHeight || window.innerHeight;
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      /* lower pixel ratio on phones keeps scrolling smooth */
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, small ? 1.5 : 2));
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
