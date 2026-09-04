@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── ATCHAYAM HOME BAKERS palette — dark espresso & warm gold ── */
+  --color-espresso: #12100c; /* page — deepest brown-black */
+  --color-coal: #181511; /* raised surfaces */
+  --color-cocoa: #211b14; /* cards / panels */
+  --color-ivory: #f3ead9; /* primary text */
+  --color-sand: #b3a488; /* muted text */
+  --color-gold: #c9a25e; /* accent */
+  --color-gold-soft: #e2c98f; /* accent light */
+  --color-gold-deep: #9a7440; /* accent deep */
+
+  --font-display: var(--font-playfair);
+  --font-sans: var(--font-manrope);
+  --font-tamil: var(--font-noto-tamil);
+
+  --animate-bob: bob 6s ease-in-out infinite;
+  --animate-drift: drift 18s ease-in-out infinite;
+  --animate-pulse-glow: pulse-glow 4s ease-in-out infinite;
+
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes drift {
+    0%, 100% { transform: translate(0, 0); }
+    33% { transform: translate(10px, -12px); }
+    66% { transform: translate(-8px, 8px); }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  background-color: var(--color-espresso);
+  color: var(--color-ivory);
+  font-family: var(--font-manrope), system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-gold);
+  color: var(--color-espresso);
+}
+
+/* ── Reusable premium treatments ── */
+
+/* warm gradient text for hero/link accents */
+@utility text-gold-gradient {
+  background: linear-gradient(96deg, #f5e6c4 0%, #c9a25e 48%, #a67f43 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* soft gold line under section eyebrows */
+@utility gold-hairline {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(201 162 94 / 0.9) 30%,
+    rgb(226 201 143 / 0.9) 50%,
+    rgb(201 162 94 / 0.9) 70%,
+    transparent
+  );
+}
+
+/* dark glassy panel over the 3D world */
+@utility glass-panel {
+  background: linear-gradient(160deg, rgb(33 27 20 / 0.82), rgb(18 16 12 / 0.55));
+  backdrop-filter: blur(12px) saturate(1.15);
+  -webkit-backdrop-filter: blur(12px) saturate(1.15);
+  border: 1px solid rgb(243 234 217 / 0.09);
+}
+
+/* fine white hairline border */
+@utility hairline {
+  border-color: rgb(243 234 217 / 0.09);
+}
+
+/* scrollbar hiding (horizontal film strips) */
+@utility scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* subtle ambient vignette behind page sections */
+@utility vignette {
+  background:
+    radial-gradient(110% 70% at 50% 0%, rgb(201 162 94 / 0.07), transparent 60%),
+    radial-gradient(120% 90% at 50% 110%, transparent 40%, rgb(0 0 0 / 0.5) 100%);
+}
