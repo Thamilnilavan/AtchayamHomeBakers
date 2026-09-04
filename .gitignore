@@ -47,3 +47,12 @@ next-env.d.ts
 
 # Freebuff desktop agent workspace state
 .freebuff/
+
+# editors & IDEs
+.vscode/
+.idea/
+*.swp
+
+# logs & temporary files
+*.log
+/tmp/
