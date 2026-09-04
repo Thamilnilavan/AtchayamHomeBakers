@@ -227,90 +227,46 @@ export function SiteNav() {
   );
 }
 
-/* ── hero photo shelf — the seven bakes in one aligned row ── */
+/* ── hero backdrop — the seven bakes, full-screen, slowly turning ── */
 
-type ShelfPos = {
-  depth: number; // mouse-parallax strength
-  fan: number; // static 3D tilt in degrees
-};
-
-const SHELF: ShelfPos[] = [
-  { depth: 1, fan: 9 },
-  { depth: 0.85, fan: -7 },
-  { depth: 0.7, fan: 5 },
-  { depth: 0.55, fan: 0 },
-  { depth: 0.7, fan: -5 },
-  { depth: 0.85, fan: 7 },
-  { depth: 1, fan: -9 },
-];
-
-function ShelfCard({
-  photo,
-  pos,
-  i,
+function HeroBackdrop({
+  slide,
+  rm,
   px,
   py,
-  rm,
 }: {
-  photo: (typeof galleryPhotos)[number];
-  pos: ShelfPos;
-  i: number;
+  slide: number;
+  rm: boolean | null;
   px: MotionValue<number>;
   py: MotionValue<number>;
-  rm: boolean | null;
-}) {
-  const x = useTransform(px, (v) => v * pos.depth * 26);
-  const y = useTransform(py, (v) => v * pos.depth * 18);
-  const ry = useTransform(px, (v) => v * pos.depth * 5);
-  return (
-    <div
-      className={`pointer-events-none shrink-0 ${i === 0 ? "" : "-ml-6 md:-ml-10 lg:-ml-12"}`}
-      style={{ perspective: 900 }}
-    >
-      <motion.div style={{ transformStyle: "preserve-3d", ...(rm ? undefined : { x, y, rotateY: ry }) }}>
-        <div style={{ transform: `rotateY(${pos.fan}deg)` }}>
-          <div className={rm ? "" : "animate-bob"} style={{ animationDelay: `${(i % 5) * 0.8}s` }}>
-            <div className="relative h-24 w-20 overflow-hidden rounded-2xl border border-gold/25 bg-cocoa opacity-90 shadow-[0_28px_60px_-28px_rgba(201,162,94,0.45)] md:h-44 md:w-36 lg:h-52 lg:w-44">
-              <Image src={photo.src} alt="" fill sizes="320px" loading="eager" className="object-cover" />
-              <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-ivory/10" />
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-function PhotoShelf({
-  px,
-  py,
-  rm,
-}: {
-  px: MotionValue<number>;
-  py: MotionValue<number>;
-  rm: boolean | null;
 }) {
   const photos = galleryPhotos.slice(0, 7);
   return (
-    <div aria-hidden className="pointer-events-none mt-10 flex w-full justify-center">
-      {/* desktop — all seven, overlapping into a fanned shelf */}
-      <div className="hidden items-center md:flex" style={{ perspective: 1100 }}>
-        {SHELF.map((pos, i) => (
-          <ShelfCard key={i} photo={photos[i]} pos={pos} i={i} px={px} py={py} rm={rm} />
-        ))}
-      </div>
-      {/* mobile — three, evenly spaced */}
-      <div className="flex items-center gap-3 md:hidden">
-        {photos.slice(2, 5).map((photo) => (
-          <div
-            key={photo.src}
-            className="relative h-24 w-20 overflow-hidden rounded-xl border border-gold/20 bg-cocoa opacity-90 shadow-[0_18px_40px_-22px_rgba(201,162,94,0.5)]"
+    <motion.div aria-hidden className="absolute inset-0" style={{ x: px, y: py }}>
+      {photos.map((p, i) => (
+        <motion.div
+          key={p.src}
+          className="absolute inset-0"
+          animate={{ opacity: i === slide ? 1 : 0 }}
+          transition={{ duration: 1.6, ease: "easeInOut" }}
+        >
+          <motion.div
+            className="relative h-full w-full"
+            animate={rm ? undefined : { scale: [1.06, 1.15, 1.06] }}
+            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
           >
-            <Image src={photo.src} alt="" fill sizes="160px" loading="eager" className="object-cover" />
-          </div>
-        ))}
-      </div>
-    </div>
+            <Image
+              src={p.src}
+              alt=""
+              fill
+              priority={i === 0}
+              sizes="100vw"
+              className="object-cover"
+            />
+          </motion.div>
+        </motion.div>
+      ))}
+    </motion.div>
   );
 }
 
@@ -338,11 +294,25 @@ export function HeroSection() {
   const contentY = useTransform(scrollYProgress, [0, 0.9], [0, -90]);
   const contentOpacity = useTransform(scrollYProgress, [0, 0.45, 0.9], [1, 1, 0]);
 
-  /* mouse parallax — the floating photos drift against the cursor */
+  /* the seven bakes as a full-screen slideshow — one fades into the next */
+  const [slide, setSlide] = useState(0);
+  useEffect(() => {
+    if (rm) return;
+    const id = setInterval(() => setSlide((s) => (s + 1) % galleryPhotos.length), 6000);
+    return () => clearInterval(id);
+  }, [rm]);
+
+  /* scroll parallax on the background (desktop only) */
+  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "14%"]);
+  const bgScale = useTransform(scrollYProgress, [0, 1], [1.1, 1.02]);
+
+  /* mouse parallax — the scene drifts gently against the cursor */
   const parX = useMotionValue(0);
   const parY = useMotionValue(0);
   const photoX = useSpring(parX, { stiffness: 55, damping: 20 });
   const photoY = useSpring(parY, { stiffness: 55, damping: 20 });
+  const bgParX = useTransform(photoX, (v) => v * 10);
+  const bgParY = useTransform(photoY, (v) => v * 8);
   const onMove = (e: RPointerEvent<HTMLElement>) => {
     if (rm) return;
     const r = e.currentTarget.getBoundingClientRect();
@@ -362,13 +332,21 @@ export function HeroSection() {
       onPointerLeave={onLeave}
       className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden"
     >
-      {/* 1 · a soft golden bloom behind the words, dark vignette at the edges */}
+      {/* 1 · the seven bakes as a full-screen slideshow */}
+      <motion.div
+        aria-hidden
+        className="absolute inset-0"
+        style={rm || !heroMotion ? undefined : { y: bgY, scale: bgScale }}
+      >
+        <HeroBackdrop slide={slide} rm={rm} px={bgParX} py={bgParY} />
+      </motion.div>
+      {/* 2 · dark washes keep the words readable; the edges melt into the page */}
       <div
         aria-hidden
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(58% 46% at 50% 44%, rgba(201,162,94,0.12) 0%, rgba(201,162,94,0.04) 46%, rgba(18,16,12,0) 72%)",
+            "linear-gradient(180deg, rgba(18,16,12,0.78) 0%, rgba(18,16,12,0.22) 30%, rgba(18,16,12,0.34) 55%, rgba(18,16,12,0.82) 84%, #12100c 100%)",
         }}
       />
       <div
@@ -376,10 +354,10 @@ export function HeroSection() {
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(180deg, rgba(18,16,12,0.6) 0%, rgba(18,16,12,0) 22%, rgba(18,16,12,0) 58%, rgba(18,16,12,0.5) 84%, #12100c 100%)",
+            "radial-gradient(70% 55% at 50% 46%, rgba(18,16,12,0.25) 0%, rgba(18,16,12,0) 60%)",
         }}
       />
-      {/* 2 · living gold dust across the hero */}
+      {/* 3 · living gold dust over the scene */}
       <AtchayamCanvas />
 
       <motion.div
@@ -429,14 +407,11 @@ export function HeroSection() {
           <GhostButton href="#bakes">Explore the bakes ↓</GhostButton>
         </motion.div>
 
-        {/* the seven bakes — one aligned shelf, parallax with the cursor */}
-        <PhotoShelf px={photoX} py={photoY} rm={rm} />
-
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.15, duration: 1 }}
-          className="mt-8 flex flex-col items-center gap-2"
+          className="mt-9 flex flex-col items-center gap-2"
         >
           <p className="text-[9px] font-semibold uppercase tracking-[0.4em] text-sand/80">
             Fresh daily · 7 AM – 9:30 PM · Kilinochchi
