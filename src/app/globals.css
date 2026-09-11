@@ -18,6 +18,8 @@
   --animate-bob: bob 6s ease-in-out infinite;
   --animate-drift: drift 18s ease-in-out infinite;
   --animate-pulse-glow: pulse-glow 4s ease-in-out infinite;
+  --animate-shimmer: shimmer 3s linear infinite;
+  --animate-marquee: marquee 38s linear infinite;
 
   @keyframes bob {
     0%, 100% { transform: translateY(0); }
@@ -34,6 +36,16 @@
     0%, 100% { opacity: 0.5; }
     50% { opacity: 1; }
   }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
 }
 
 html {
@@ -43,6 +55,10 @@ html {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  .animate-marquee {
+    animation: none;
   }
 }
 
@@ -91,6 +107,26 @@ body {
 /* fine white hairline border */
 @utility hairline {
   border-color: rgb(243 234 217 / 0.09);
+}
+
+/* high-end gold shimmer effect for buttons */
+@utility gold-shimmer {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    animation: var(--animate-shimmer);
+  }
 }
 
 /* scrollbar hiding (horizontal film strips) */

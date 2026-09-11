@@ -23,7 +23,7 @@ A single-page marketing site for a Sri Lankan home bakery (Ambalkulam, Kilinochc
 
 ## Layout
 
-- All page sections live in `src/components/sections.tsx` (`SiteNav`, `HeroSection`, `StorySection`, `BakesSection`, `CounterSection`, `OrderSection`, `VisitSection`, `SiteFooter`)
+- All page sections live in `src/components/sections.tsx` (`SiteNav`, `HeroSection`, `MarqueeRibbon`, `StorySection`, `BakesSection`, `CounterSection`, `OrderSection`, `TestimonialsSection`, `GalleryStrip`, `VisitSection`, `SiteFooter`, `MobileOrderBar`)
 - 3D: `src/components/three/AtchayamCanvas.tsx` + `world.ts`
 - All site copy/data: `src/lib/data.ts` (single source of truth — menu, story, WhatsApp, hours, contact)
 

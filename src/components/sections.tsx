@@ -26,6 +26,7 @@ import {
   story,
   visit,
   wa,
+  testimonials,
 } from "@/lib/data";
 import AtchayamCanvas from "./three/AtchayamCanvas";
 
@@ -76,7 +77,7 @@ function LogoMark({ className }: { className?: string }) {
       alt="ATCHAYAM Home Bakers logo"
       width={417}
       height={384}
-      className={`rounded-md bg-white object-contain ${className ?? "h-9 w-auto"}`}
+      className={`rounded-md bg-ivory/90 object-contain ${className ?? "h-9 w-auto"}`}
       priority
     />
   );
@@ -105,7 +106,7 @@ function GoldButton({
     <a
       href={href}
       {...(external ? { target: "_blank", rel: "noreferrer" } : {})}
-      className={`group inline-flex items-center justify-center gap-2.5 rounded-full bg-gradient-to-b from-gold-soft via-gold to-gold-deep px-7 py-3.5 text-[13px] font-bold uppercase tracking-[0.18em] text-espresso shadow-[0_10px_35px_-12px_rgba(201,162,94,0.65)] transition-all duration-300 hover:shadow-[0_16px_45px_-10px_rgba(201,162,94,0.8)] hover:brightness-110 ${className ?? ""}`}
+      className={`group gold-shimmer inline-flex items-center justify-center gap-2.5 rounded-full bg-gradient-to-b from-gold-soft via-gold to-gold-deep px-7 py-3.5 text-[13px] font-bold uppercase tracking-[0.18em] text-espresso shadow-[0_10px_35px_-12px_rgba(201,162,94,0.65)] transition-all duration-300 hover:shadow-[0_16px_45px_-10px_rgba(201,162,94,0.8)] hover:brightness-110 ${className ?? ""}`}
     >
       {children}
     </a>
@@ -240,32 +241,53 @@ function HeroBackdrop({
   px: MotionValue<number>;
   py: MotionValue<number>;
 }) {
-  const photos = galleryPhotos.slice(0, 7);
+  const photos = galleryPhotos;
+
+  /* mounting every photo up front would fetch all seven full-screen JPGs
+     on first paint — keep only shown slides mounted plus the next one
+     preloading, so each photo gets a full slide interval to arrive
+     before it is crossfaded in */
+  const [revealed, setRevealed] = useState(
+    () => new Set<number>(photos.length > 1 ? [0, 1] : [0]),
+  );
+  useEffect(() => {
+    setRevealed((prev) => {
+      const upcoming = (slide + 1) % photos.length;
+      if (prev.has(slide) && prev.has(upcoming)) return prev;
+      const next = new Set(prev);
+      next.add(slide);
+      next.add(upcoming);
+      return next;
+    });
+  }, [slide, photos.length]);
+
   return (
     <motion.div aria-hidden className="absolute inset-0" style={{ x: px, y: py }}>
-      {photos.map((p, i) => (
-        <motion.div
-          key={p.src}
-          className="absolute inset-0"
-          animate={{ opacity: i === slide ? 1 : 0 }}
-          transition={{ duration: 1.6, ease: "easeInOut" }}
-        >
+      {photos.map((p, i) =>
+        revealed.has(i) ? (
           <motion.div
-            className="relative h-full w-full"
-            animate={rm ? undefined : { scale: [1.06, 1.15, 1.06] }}
-            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+            key={p.src}
+            className="absolute inset-0"
+            animate={{ opacity: i === slide ? 1 : 0 }}
+            transition={{ duration: 1.6, ease: "easeInOut" }}
           >
-            <Image
-              src={p.src}
-              alt=""
-              fill
-              priority={i === 0}
-              sizes="100vw"
-              className="object-cover"
-            />
+            <motion.div
+              className="relative h-full w-full"
+              animate={rm ? undefined : { scale: [1.06, 1.15, 1.06] }}
+              transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Image
+                src={p.src}
+                alt=""
+                fill
+                priority={i === 0}
+                sizes="100vw"
+                className="object-cover"
+              />
+            </motion.div>
           </motion.div>
-        </motion.div>
-      ))}
+        ) : null,
+      )}
     </motion.div>
   );
 }
@@ -298,7 +320,7 @@ export function HeroSection() {
   const [slide, setSlide] = useState(0);
   useEffect(() => {
     if (rm) return;
-    const id = setInterval(() => setSlide((s) => (s + 1) % galleryPhotos.length), 6000);
+    const id = setInterval(() => setSlide((s) => (s + 1) % 10), 6000);
     return () => clearInterval(id);
   }, [rm]);
 
@@ -364,6 +386,21 @@ export function HeroSection() {
         style={rm || !heroMotion ? undefined : { y: contentY, opacity: contentOpacity }}
         className="relative z-10 flex w-full max-w-5xl flex-col items-center px-6 pb-16 pt-28 sm:pt-32"
       >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0, duration: 0.5 }}
+          className="mb-6 flex items-center gap-2 rounded-full border border-gold/20 bg-gold/10 px-3 py-1 backdrop-blur-md"
+        >
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
+          </span>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gold/90">
+            Open Now · {visit.hours} · Kilinochchi
+          </p>
+        </motion.div>
+
         <motion.p
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -431,7 +468,44 @@ export function HeroSection() {
   );
 }
 
-/* ── 3 · Our Story ── */
+/* ── 3 · Gold ribbon — slow ticker of what the counter stands for ── */
+const RIBBON_ITEMS = [
+  "Baked fresh daily",
+  "Buns & savoury",
+  "Cakes & slices",
+  "Sweet treats",
+  "Custom celebration cakes",
+  "Order on WhatsApp",
+];
+
+export function MarqueeRibbon() {
+  /* two identical copies; the marquee keyframe translates -50% for a seamless loop */
+  return (
+    <div
+      aria-hidden
+      className="relative overflow-hidden border-y border-gold/15 bg-coal/50 py-4"
+    >
+      <div className="flex w-max animate-marquee items-center">
+        {[0, 1].map((copy) => (
+          <div key={copy} className="flex items-center">
+            {RIBBON_ITEMS.map((item) => (
+              <span key={item} className="flex items-center">
+                <span className="px-7 text-[11px] font-semibold uppercase tracking-[0.3em] text-gold/85">
+                  {item}
+                </span>
+                <span className="h-1 w-1 rounded-full bg-gold/40" />
+              </span>
+            ))}
+            <span className="font-tamil px-7 text-sm text-gold/60">அட்சயம்</span>
+            <span className="h-1 w-1 rounded-full bg-gold/40" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── 4 · Our Story ── */
 export function StorySection() {
   return (
     <section id="story" className="vignette relative scroll-mt-20 overflow-hidden px-6 py-28 md:py-40">
@@ -490,7 +564,7 @@ export function StorySection() {
   );
 }
 
-/* ── 4 · Our Bakes ── */
+/* ── 5 · Our Bakes ── */
 function OrderRow({ item }: { item: string }) {
   return (
     <a
@@ -617,7 +691,7 @@ export function BakesSection() {
   );
 }
 
-/* ── 5 · The full counter (menu lists) ── */
+/* ── 6 · The full counter (menu lists) ── */
 export function CounterSection() {
   return (
     <section className="relative px-6 pb-28 md:pb-36">
@@ -683,7 +757,7 @@ export function CounterSection() {
   );
 }
 
-/* ── 6 · How to order ── */
+/* ── 7 · How to order ── */
 export function OrderSection() {
   return (
     <section id="order" className="relative scroll-mt-20 px-6 py-28 md:py-36">
@@ -788,7 +862,63 @@ export function OrderSection() {
   );
 }
 
-/* ── 7 · Visit us ── */
+/* ── 9 · From the counter — photo strip feeding Instagram ── */
+export function GalleryStrip() {
+  return (
+    <section className="relative py-24 md:py-32">
+      <div className="mx-auto max-w-6xl px-6">
+        <Reveal className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-2xl">
+            <Eyebrow>From the counter</Eyebrow>
+            <h2 className="font-display mt-6 text-4xl font-medium leading-[1.06] tracking-tight text-ivory sm:text-5xl">
+              Today&rsquo;s bakes,
+              <br />
+              <span className="text-gold-gradient italic">
+                straight from the oven.
+              </span>
+            </h2>
+          </div>
+          <a
+            href={visit.instagramUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex w-fit items-center gap-2 rounded-full border border-gold/40 px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-gold transition-colors hover:bg-gold hover:text-espresso"
+          >
+            Follow {visit.instagram} →
+          </a>
+        </Reveal>
+      </div>
+
+      <Reveal delay={0.1} className="mt-10">
+        <div className="scrollbar-none flex snap-x gap-4 overflow-x-auto px-6 pb-2">
+          {galleryPhotos.map((p) => (
+            <a
+              key={p.src}
+              href={visit.instagramUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="group relative aspect-square w-60 shrink-0 snap-start overflow-hidden rounded-2xl border border-ivory/[0.08] sm:w-72"
+            >
+              <Image
+                src={p.src}
+                alt={p.label}
+                fill
+                sizes="288px"
+                className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-espresso/80 via-transparent to-transparent" />
+              <span className="absolute inset-x-4 bottom-3.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-ivory/90">
+                {p.label}
+              </span>
+            </a>
+          ))}
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
+/* ── 10 · Visit us ── */
 export function VisitSection() {
   return (
     <section id="visit" className="vignette relative scroll-mt-20 px-6 py-28 md:py-36">
@@ -815,7 +945,28 @@ export function VisitSection() {
                   {visit.address}
                 </p>
                 <p className="mt-2 text-sm text-sand">Kilinochchi, Sri Lanka</p>
+                <a
+                  href={visit.directionsUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-gold"
+                >
+                  Get directions
+                  <span aria-hidden className="transition-transform duration-300">→</span>
+                </a>
               </div>
+            </div>
+
+            {/* dark-styled Google map — the address as a clickable destination */}
+            <div className="mt-5 overflow-hidden rounded-2xl border border-ivory/[0.08]">
+              <iframe
+                title="Map to ATCHAYAM Home Bakers — Ambalkulam, Kilinochchi"
+                src={visit.mapEmbedUrl}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="h-56 w-full sm:h-64"
+                style={{ filter: "grayscale(1) invert(0.92) contrast(0.9) brightness(0.9)" }}
+              />
             </div>
 
             <div className="mt-5 grid gap-5 sm:grid-cols-2">
@@ -905,7 +1056,52 @@ export function VisitSection() {
   );
 }
 
-/* ── 8 · Footer ── */
+/* ── 8 · Testimonials ── */
+export function TestimonialsSection() {
+  return (
+    <section className="relative px-6 py-28 md:py-36">
+      <div className="mx-auto max-w-6xl">
+        <Reveal className="max-w-2xl mb-16 text-center mx-auto">
+          <Eyebrow center>Neighborly Love</Eyebrow>
+          <h2 className="font-display mt-6 text-4xl font-medium leading-[1.06] tracking-tight text-ivory sm:text-5xl">
+            Words from our
+            <br />
+            <span className="text-gold-gradient italic">happiest customers.</span>
+          </h2>
+        </Reveal>
+        <div className="grid gap-8 md:grid-cols-3">
+          {testimonials.map((t, i) => (
+            <Reveal key={t.name} delay={i * 0.1}>
+              <div className="group relative flex flex-col rounded-2xl border border-ivory/[0.08] bg-coal/40 p-8 transition-all duration-500 hover:border-gold/30">
+                <div className="mb-6 flex text-gold">
+                  {[...Array(5)].map((_, i) => (
+                    <svg key={i} className="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.951 8.82c-.809-.58-1.1-1.31-.45-2.04.35-.73 1.22-1.12 2.04-1.12h1.1l.35-.1l.35.1h1.1c.82 0 1.69.39 2.04 1.12.35.73-.14 1.46-.45 2.04z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-sm leading-relaxed text-sand italic">
+                  &ldquo;{t.text}&rdquo;
+                </p>
+                <div className="mt-8 flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-full bg-gold/20 flex items-center justify-center text-gold font-display text-xs font-bold">
+                    {t.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-ivory">{t.name}</p>
+                    <p className="text-[10px] uppercase tracking-wider text-sand/60">{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── 9 · Footer ── */
 export function SiteFooter() {
   return (
     <footer className="border-t border-ivory/[0.07] bg-[#0d0b08]">
@@ -982,7 +1178,43 @@ export function SiteFooter() {
           </p>
           <p className="text-[11px] text-sand/60">Baked with care · Kilinochchi, Sri Lanka</p>
         </div>
+
+        {/* breathing room so the sticky mobile order bar never covers this row */}
+        <div className="h-16 md:hidden" />
       </div>
     </footer>
+  );
+}
+
+/* ── 11 · Sticky mobile order bar — persistent WhatsApp CTA on phones ── */
+export function MobileOrderBar() {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setShow(window.scrollY > window.innerHeight * 0.65);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return (
+    <motion.div
+      initial={false}
+      animate={{ y: show ? 0 : 96, opacity: show ? 1 : 0 }}
+      transition={{ duration: 0.35, ease: EASE }}
+      className={`fixed inset-x-4 bottom-4 z-40 md:hidden ${
+        show ? "pointer-events-auto" : "pointer-events-none"
+      }`}
+    >
+      <a
+        href={wa.link()}
+        target="_blank"
+        rel="noreferrer"
+        className="flex items-center justify-center gap-2.5 rounded-full bg-gradient-to-b from-gold-soft via-gold to-gold-deep px-6 py-4 text-[13px] font-bold uppercase tracking-[0.16em] text-espresso shadow-[0_18px_45px_-12px_rgba(201,162,94,0.75)]"
+      >
+        <WaIcon className="h-4 w-4" />
+        Order on WhatsApp
+      </a>
+    </motion.div>
   );
 }

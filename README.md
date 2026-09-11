@@ -26,11 +26,15 @@ One scrolling page:
 
 1. **Nav** — logo chip, anchor links (Our Story / Our Bakes / Order / Visit Us), WhatsApp pill
 2. **Hero** — full-screen slideshow of the seven bake photos with gold dust, headline, WhatsApp + Explore CTAs
-3. **Our Story** — founder Aathiththiya, the meaning of அட்சயம், three pillars, brand quote
-4. **Signature Bakes** — the five bestsellers as photo/wordmark cards + custom-orders tile
-5. **The Counter** — the full menu (18 items in three categories), each row opening WhatsApp
-6. **How to Order** — 3-step timeline, sticky WhatsApp/call card, made-to-order tags, allergen note
-7. **Visit Us / Footer** — address, hours, phone, email, Instagram, Tamil sign-off
+3. **Gold ribbon** — slow marquee ticker (baked fresh daily · buns · cakes · sweets …)
+4. **Our Story** — founder Aathiththiya, the meaning of அட்சயம், three pillars, brand quote
+5. **Signature Bakes** — the five bestsellers as photo/wordmark cards + custom-orders tile
+6. **The Counter** — the full menu (18 items in three categories), each row opening WhatsApp
+7. **How to Order** — 3-step timeline, sticky WhatsApp/call card, made-to-order tags, allergen note
+8. **Testimonials** — three customer quotes with star ratings
+9. **From the counter** — scrollable photo strip that links to Instagram
+10. **Visit Us / Footer** — address with directions link, dark-styled Google map, hours, phone, email, Instagram, Tamil sign-off
+11. **Sticky mobile bar** — persistent WhatsApp order CTA on phones (appears after the hero)
 
 ## Where content lives
 
@@ -41,7 +45,7 @@ All text and business details live in **`src/lib/data.ts`** — edit one file to
 | Menu, bestseller cards, tasting notes | `signatures`, `categories` |
 | Story, அட்சயம் meaning, pillars, quote | `story` |
 | Ordering steps, custom tags, allergen note | `ordering` |
-| Address, hours, phone, email, Instagram | `visit` |
+| Address, hours, phone, email, Instagram, Google Maps links | `visit` |
 | Brand name, Tamil wordmark | `brand` |
 | WhatsApp number & pre-filled messages | `wa` |
 | Hero slideshow photos (7) | `galleryPhotos` |

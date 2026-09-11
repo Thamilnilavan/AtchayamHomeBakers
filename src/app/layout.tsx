@@ -45,11 +45,50 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Bakery",
+    "name": "ATCHAYAM Home Bakers",
+    "image": "/atchayam-logo.png",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "153/1, Ambalkulam",
+      "addressLocality": "Kilinochchi",
+      "addressCountry": "LK",
+    },
+    "telephone": "+94743842935",
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday",
+        ],
+        "opens": "07:00",
+        "closes": "21:30",
+      },
+    ],
+    "sameAs": [
+      "https://www.instagram.com/atchayam_home_bakers",
+    ],
+  };
+
   return (
     <html
       lang="en"
       className={`${playfair.variable} ${manrope.variable} ${notoTamil.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="min-h-full bg-espresso font-sans text-ivory">
         {children}
       </body>

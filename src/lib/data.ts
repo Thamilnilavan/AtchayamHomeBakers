@@ -25,6 +25,8 @@ export const wa = {
   defaultMsg: "Hello Atchayam Home Bakers! I'd like to place an order.",
   orderMsg: (item: string) =>
     `Hello Atchayam Home Bakers! I'd like to order: ${item}. Could you let me know availability?`,
+  customOrderMsg: () =>
+    `Hello Atchayam Home Bakers! I'd like to request a custom cake/order. Could you let me know your availability and the process for custom designs?`,
   link: (msg?: string) =>
     `https://wa.me/${wa.number}?text=${encodeURIComponent(msg ?? wa.defaultMsg)}`,
 } as const;
@@ -40,6 +42,9 @@ export const galleryPhotos = [
   { src: `${D}/muffins-with-cocoa-cream-wooden-board.jpg`, label: "Muffin cakes" },
   { src: `${D}/delicious-pain-aux-raisin-with-sugar.jpg`, label: "Buttery pastries" },
   { src: `${D}/decadent-chocolate-brownie-with-sauce-splash-dark-background.jpg`, label: "Molten brownies" },
+  { src: `${D}/chicken-bun.jpg`, label: "Chicken buns" },
+  { src: `${D}/donuts.jpg`, label: "Donuts" },
+  { src: `${D}/pastries.jpg`, label: "Pastries" },
 ] as const;
 
 /* ── Signature bakes (bestsellers) ── */
@@ -64,14 +69,15 @@ export const signatures: (Bake & { tag: string; kind: "photo" | "wordmark" })[] 
     id: "chicken-buns",
     name: "Chicken Buns",
     note: "Hearty chicken filling folded into soft, fresh-baked dough. A daily counter favourite.",
+    src: galleryPhotos[7].src,
     tag: "Bestseller",
-    kind: "wordmark",
+    kind: "photo",
   },
   {
     id: "pastries",
     name: "Pastries",
     note: "Flaky, golden and buttery — rolled, proofed and baked by hand through the morning.",
-    src: galleryPhotos[5].src,
+    src: galleryPhotos[9].src,
     tag: "Bestseller",
     kind: "photo",
   },
@@ -79,8 +85,9 @@ export const signatures: (Bake & { tag: string; kind: "photo" | "wordmark" })[] 
     id: "donuts",
     name: "Donuts",
     note: "Fried golden, sugar-dusted and best eaten the moment they cool enough to hold.",
+    src: galleryPhotos[8].src,
     tag: "Bestseller",
-    kind: "wordmark",
+    kind: "photo",
   },
 ];
 
@@ -204,6 +211,10 @@ export const visit = {
   email: "atchayamhomebakers@gmail.com",
   instagram: "@atchayam_home_bakers",
   instagramUrl: "https://www.instagram.com/atchayam_home_bakers",
+  mapEmbedUrl:
+    "https://maps.google.com/maps?q=Ambalkulam%2C%20Kilinochchi%2C%20Sri%20Lanka&z=14&output=embed",
+  directionsUrl:
+    "https://www.google.com/maps/dir/?api=1&destination=Ambalkulam%2C%20Kilinochchi%2C%20Sri%20Lanka",
 } as const;
 
 export const brand = {
@@ -213,3 +224,22 @@ export const brand = {
   full: "ATCHAYAM HOME BAKERS",
   est: "Since February 2026 · Ambalkulam, Kilinochchi",
 } as const;
+
+/* ── Trust Signals ── */
+export const testimonials = [
+  {
+    name: "Saritha R.",
+    text: "The chocolate fudge brownies are absolute perfection. Best I've had in Kilinochchi!",
+    role: "Local Customer",
+  },
+  {
+    name: "Kavindran M.",
+    text: "Their custom celebration cakes are stunning and taste even better. Highly recommended for any event.",
+    role: "Event Planner",
+  },
+  {
+    name: "Amara S.",
+    text: "Freshly baked buns every morning. A wonderful addition to our neighborhood.",
+    role: "Regular Customer",
+  },
+] as const;
